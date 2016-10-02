@@ -46,7 +46,7 @@ public class Annotation: NSManagedObject, CLLocationManagerDelegate {
 
 extension Annotation{
     
-    static func observableKeys() -> [String] {return ["text", "photo.photoData", "localization.latitude", "localization.longitude"]}
+    static func observableKeys() -> [String] {return ["text", "photo.photoData"]}
     
     func setupKVO(){
         for key in Annotation.observableKeys(){
