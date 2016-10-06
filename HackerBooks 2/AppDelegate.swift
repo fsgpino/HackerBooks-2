@@ -17,33 +17,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        
-        //try! model.dropAllData()
+		
+		// Drop all data (Uncomment for Debug)
+		//try! model.dropAllData()
         
         let request : NSFetchRequest<BookTag> = BookTag.fetchRequest()
         (request.includesPropertyValues, request.sortDescriptors) = (false,[NSSortDescriptor(key: "tag.proxyForSorting", ascending: true),NSSortDescriptor(key: "book.title", ascending: true)])
         
         do{
+			
+			// Get number books
             let bookCounter = try self.model.context.count(for: request)
-            
+			
+			// Check if exist books
             if bookCounter == 0 {
-                
+				
+				// Getting book from network
                 getResourceInBackground(fromURL: URL(string: "https://t.co/K9ziV0z3SJ")!, withBlock: { (jsonData:Data?) in
                     let json = try! load(fromData: jsonData!)
                     for dict in json {
                         do {
                             let _ = try decode(book: dict, in:self.model.context)
                         } catch {
-                            print("Error al procesar \(dict)")
+                            print("Error proccessing \(dict)")
                         }
                         let _ = Tag(name: "Favorites", in: self.model.context)
                     }
+					self.model.save()
                 })
                 
             }
-            
-            self.model.autoSave(7)
-            
+			
+			// Fetch to Table View Controller
             let fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: model.context, sectionNameKeyPath: "tag.name", cacheName: nil)
             
             // ViewControllers
@@ -76,8 +81,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // Set rootViewController And show view
             window?.rootViewController = splitController
             window?.makeKeyAndVisible()
-            
+			
+			// Saving each 7 seconds
+			self.model.autoSave(7)
+			
             return true
+			
         } catch {
             
             fatalError("Error loading coredata")
@@ -89,11 +98,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+		
+		// Saving model
+		self.model.save()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+		
+		// Saving model
+		self.model.save()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -106,6 +121,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+		
+		print("¡Good bye! ¡May the Force be with you!")
     }
 
 
